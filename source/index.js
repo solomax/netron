@@ -56,10 +56,6 @@ host.BrowserHost = class {
     }
 
     start() {
-        window.addEventListener('error', (e) => {
-            this.exception(e.error, true);
-        });
-
         const params = new URLSearchParams(window.location.search);
 
         this._zoom = params.get('zoom') || 'd3';
@@ -136,64 +132,9 @@ host.BrowserHost = class {
 
         this.document.getElementById('version').innerText = this.version;
 
-        if (this._meta.file) {
-            const url = this._meta.file[0];
-            if (this._view.accept(url)) {
-                this._openModel(url, null);
-                return;
-            }
+        if (!params.has('delay')) {
+            this._openInnerJson();
         }
-
-        const url = params.get('url');
-        if (url) {
-            const identifier = params.get('identifier') || null;
-            const location = url.replace(new RegExp('^https://github.com/([\\w]*/[\\w]*)/blob/([\\w/_.]*)(\\?raw=true)?$'), 'https://raw.githubusercontent.com/$1/$2');
-            if (this._view.accept(identifier || location)) {
-                this._openModel(location, identifier);
-                return;
-            }
-        }
-
-        const gist = params.get('gist');
-        if (gist) {
-            this._openGist(gist);
-            return;
-        }
-
-        this._view.show('welcome');
-        const openFileButton = this.document.getElementById('open-file-button');
-        const openFileDialog = this.document.getElementById('open-file-dialog');
-        if (openFileButton && openFileDialog) {
-            openFileButton.addEventListener('click', () => {
-                openFileDialog.value = '';
-                openFileDialog.click();
-            });
-            openFileDialog.addEventListener('change', (e) => {
-                if (e.target && e.target.files && e.target.files.length > 0) {
-                    const files = Array.from(e.target.files);
-                    const file = files.find((file) => this._view.accept(file.name));
-                    if (file) {
-                        this._open(file, files);
-                    }
-                }
-            });
-        }
-        this.document.addEventListener('dragover', (e) => {
-            e.preventDefault();
-        });
-        this.document.addEventListener('drop', (e) => {
-            e.preventDefault();
-        });
-        this.document.body.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                const files = Array.from(e.dataTransfer.files);
-                const file = files.find((file) => this._view.accept(file.name));
-                if (file) {
-                    this._open(file, files);
-                }
-            }
-        });
     }
 
     environment(name) {
@@ -204,7 +145,7 @@ host.BrowserHost = class {
     }
 
     error(message, detail) {
-        alert((message == 'Error' ? '' : message + ' ') + detail);
+        console.error((message == 'Error' ? '' : message + ' ') + detail);
     }
 
     confirm(message, detail) {
@@ -212,32 +153,11 @@ host.BrowserHost = class {
     }
 
     require(id) {
-        const url = this._url(id + '.js');
         window.__modules__ = window.__modules__ || {};
         if (window.__modules__[id]) {
             return Promise.resolve(window.__modules__[id]);
         }
-        if (window.__modules__[url]) {
-            return Promise.resolve(window.__exports__[url]);
-        }
-        return new Promise((resolve, reject) => {
-            window.module = { exports: {} };
-            const script = document.createElement('script');
-            script.setAttribute('id', id);
-            script.setAttribute('type', 'text/javascript');
-            script.setAttribute('src', url);
-            script.onload = () => {
-                const exports = window.module.exports;
-                delete window.module;
-                window.__modules__[id] = exports;
-                resolve(exports);
-            };
-            script.onerror = (e) => {
-                delete window.module;
-                reject(new Error('The script \'' + e.target.src + '\' failed to load.'));
-            };
-            this.document.head.appendChild(script);
-        });
+        return Promise.reject('Module ' + id + ' not supported');
     }
 
     save(name, extension, defaultPath, callback) {
@@ -262,99 +182,8 @@ host.BrowserHost = class {
         window.location = url;
     }
 
-    exception(error, fatal) {
-        if (this._telemetry && window.ga) {
-            const description = [];
-            description.push((error && error.name ? (error.name + ': ') : '') + (error && error.message ? error.message : '(null)'));
-            if (error.stack) {
-                const match = error.stack.match(/\n {4}at (.*)\((.*)\)/);
-                if (match) {
-                    description.push(match[1] + '(' + match[2].split('/').pop() + ')');
-                }
-                else {
-                    description.push(error.stack.split('\n').shift());
-                }
-            }
-            window.ga('send', 'exception', {
-                exDescription: description.join(' @ '),
-                exFatal: fatal,
-                appName: this.type,
-                appVersion: this.version
-            });
-        }
-    }
-
-    screen(name) {
-        if (this._telemetry && window.ga) {
-            window.ga('send', 'screenview', {
-                screenName: name,
-                appName: this.type,
-                appVersion: this.version
-            });
-        }
-    }
-
-    event(category, action, label, value) {
-        if (this._telemetry && window.ga) {
-            window.ga('send', 'event', {
-                eventCategory: category,
-                eventAction: action,
-                eventLabel: label,
-                eventValue: value,
-                appName: this.type,
-                appVersion: this.version
-            });
-        }
-    }
-
     _request(url, headers, encoding, timeout) {
-        return new Promise((resolve, reject) => {
-            const request = new XMLHttpRequest();
-            if (!encoding) {
-                request.responseType = 'arraybuffer';
-            }
-            if (timeout) {
-                request.timeout = timeout;
-            }
-            const error = (status) => {
-                const err = new Error("The web request failed with status code " + status + " at '" + url + "'.");
-                err.type = 'error';
-                err.url = url;
-                return err;
-            };
-            request.onload = () => {
-                if (request.status == 200) {
-                    if (request.responseType == 'arraybuffer') {
-                        resolve(new Uint8Array(request.response));
-                    }
-                    else {
-                        resolve(request.responseText);
-                    }
-                }
-                else {
-                    reject(error(request.status));
-                }
-            };
-            request.onerror = (e) => {
-                const err = error(request.status);
-                err.type = e.type;
-                reject(err);
-            };
-            request.ontimeout = () => {
-                request.abort();
-                const err = new Error("The web request timed out in '" + url + "'.");
-                err.type = 'timeout';
-                err.url = url;
-                reject(err);
-            };
-            request.open('GET', url, true);
-            if (headers) {
-                for (const name of Object.keys(headers)) {
-                    request.setRequestHeader(name, headers[name]);
-                }
-            }
-            request.send();
-        });
+        return Promise.reject('URL loading not supported: ' + url);
     }
 
     _url(file) {
@@ -372,56 +201,16 @@ host.BrowserHost = class {
         return url;
     }
 
-    _openModel(url, identifier) {
-        url = url + ((/\?/).test(url) ? "&" : "?") + (new Date()).getTime();
+    openInnerJson(staticData) {
         this._view.show('welcome spinner');
-        this._request(url).then((buffer) => {
-            const context = new host.BrowserHost.BrowserContext(this, url, identifier, buffer);
-            this._view.open(context).then(() => {
-                this.document.title = identifier || context.identifier;
-            }).catch((err) => {
-                if (err) {
-                    this._view.error(err, null, 'welcome');
-                }
-            });
-        }).catch((err) => {
-            this.error('Model load request failed.', err.message);
-            this._view.show('welcome');
-        });
-    }
-
-    _open(file, files) {
-        this._view.show('welcome spinner');
-        const context = new host.BrowserHost.BrowserFileContext(file, files);
-        context.open().then(() => {
-            return this._view.open(context).then((model) => {
-                this._view.show(null);
-                this.document.title = files[0].name;
-                return model;
-            });
-        }).catch((error) => {
-            this._view.error(error, null, null);
-        });
-    }
-
-    _openGist(gist) {
-        this._view.show('welcome spinner');
-        const url = 'https://api.github.com/gists/' + gist;
-        this._request(url, { 'Content-Type': 'application/json' }, 'utf-8').then((text) => {
-            const json = JSON.parse(text);
-            if (json.message) {
-                this.error('Error while loading Gist.', json.message);
-                return;
-            }
-            const key = Object.keys(json.files).find((key) => this._view.accept(json.files[key].filename));
+            const key = this._view.accept(staticData.filename);
             if (!key) {
-                this.error('Error while loading Gist.', 'Gist does not contain a model file.');
+                this.error('Error while loading static data.', 'static data does not contain a model file.');
                 return;
             }
-            const file = json.files[key];
-            const identifier = file.filename;
+            const identifier = staticData.filename;
             const encoder = new TextEncoder();
-            const buffer = encoder.encode(file.content);
+            const buffer = encoder.encode(JSON.stringify(staticData.content));
             const context = new host.BrowserHost.BrowserContext(this, '', identifier, buffer);
             this._view.open(context).then(() => {
                 this.document.title = identifier;
@@ -430,9 +219,6 @@ host.BrowserHost = class {
                     this._view.show(error.name, error, 'welcome');
                 }
             });
-        }).catch((err) => {
-            this._view.show('Model load request failed.', err, 'welcome');
-        });
     }
 
     _about() {

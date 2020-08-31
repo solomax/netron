@@ -75,7 +75,6 @@ view.View = class {
         if (!page) {
             page = (!this._model && !this._activeGraph) ? 'welcome' : 'default';
         }
-        this._host.screen(page);
         if (this._sidebar) {
             this._sidebar.close();
         }
@@ -297,7 +296,6 @@ view.View = class {
         if (this._sidebar) {
             this._sidebar.close();
         }
-        this._host.exception(err, false);
 
         const knowns = [
             { name: 'Error', message: /^EACCES: permission denied/, url: 'https://github.com/lutzroeder/netron/issues/504' },
@@ -332,14 +330,10 @@ view.View = class {
     }
 
     open(context) {
-        this._host.event('Model', 'Open', 'Size', context.buffer.length);
         this._sidebar.close();
         return this._timeout(2).then(() => {
             return this._modelFactoryService.open(context).then((model) => {
                 const format = model.format;
-                if (format) {
-                    this._host.event('Model', 'Format', format + (model.producer ? ' (' + model.producer + ')' : ''));
-                }
                 return this._timeout(20).then(() => {
                     const graph = model.graphs.length > 0 ? model.graphs[0] : null;
                     return this._updateGraph(model, graph);
@@ -372,7 +366,6 @@ view.View = class {
                 const nodes = graph.nodes;
                 if (nodes.length > 1400) {
                     if (!this._host.confirm('Large model detected.', 'This graph contains a large number of nodes and might take a long time to render. Do you want to continue?')) {
-                        this._host.event('Graph', 'Render', 'Skip', nodes.length);
                         this.show(null);
                         return null;
                     }
@@ -443,8 +436,6 @@ view.View = class {
                 if (nodes.length > 1500) {
                     graphOptions.ranker = 'longest-path';
                 }
-
-                this._host.event('Graph', 'Render', 'Size', nodes.length);
 
                 if (groups) {
                     for (const node of nodes) {
@@ -1409,7 +1400,6 @@ view.ModelFactoryService = class {
         identifier = identifier.toLowerCase();
         for (const entry of this._extensions) {
             if (identifier.endsWith(entry.extension)) {
-                this._host.event('File', 'Accept', extension, 1);
                 return true;
             }
         }
@@ -1417,10 +1407,8 @@ view.ModelFactoryService = class {
             identifier.endsWith('.tar') ||
             identifier.endsWith('.tar.gz') ||
             identifier.endsWith('.tgz')) {
-            this._host.event('File', 'Accept', extension, 1);
             return true;
         }
-        this._host.event('File', 'Reject', extension, 1);
         return false;
     }
 
