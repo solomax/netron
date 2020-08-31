@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+var mxnetMeta = mxnetMeta || require('./mxnet-metadata.json');
 
 var mxnet = mxnet || {};
 var zip = zip || require('./zip');
@@ -218,7 +219,6 @@ mxnet.ModelFactory = class {
     }
 
     _openModel(identifier, format, manifest, symbol, signature, params, host) {
-        return mxnet.Metadata.open(host).then((metadata) => {
             const parameters = new Map();
             if (params) {
                 try {
@@ -233,14 +233,13 @@ mxnet.ModelFactory = class {
                 }
             }
             try {
-                return new mxnet.Model(metadata, format, manifest, symbol, signature, parameters);
+                return Promise.resolve(new mxnet.Model(new mxnet.Metadata(mxnetMeta), format, manifest, symbol, signature, parameters));
             }
             catch (error) {
                 host.exception(error, false);
                 const message = error && error.message ? error.message : error.toString();
                 throw new mxnet.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
             }
-        });
     }
 
     static _basename(identifier, extension, suffix) {
@@ -1073,15 +1072,12 @@ mxnet.Metadata = class {
         this._map = {};
         this._attributeCache = {};
         if (data) {
-            const items = JSON.parse(data);
-            if (items) {
-                for (const item of items) {
+                for (const item of data) {
                     if (item.name && item.schema) {
                         item.schema.name = item.name;
                         this._map[item.name] = item.schema;
                     }
                 }
-            }
         }
     }
 

@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+var kerasMeta = kerasMeta || require('./keras-metadata.json');
 
 var keras = keras || {};
 
@@ -248,16 +249,14 @@ keras.ModelFactory = class {
                 throw new keras.Error('\'class_name\' is not present.');
             }
 
-            return keras.Metadata.open(host).then((metadata) => {
                 try {
-                    return new keras.Model(metadata, format, producer, backend, model_config, weights);
+                    return Promise.resolve(new keras.Model(new keras.Metadata(kerasMeta), format, producer, backend, model_config, weights));
                 }
                 catch (error) {
                     host.exception(error, false);
                     const message = error && error.message ? error.message : error.toString();
                     throw new keras.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
                 }
-            });
         });
     }
 };
@@ -1091,15 +1090,12 @@ keras.Metadata = class {
         this._map = new Map();
         this._attributeCache = new Map();
         if (data) {
-            const items = JSON.parse(data);
-            if (items) {
-                for (const item of items) {
+                for (const item of data) {
                     if (item.name && item.schema) {
                         item.schema.name = item.name;
                         this._map.set(item.name, item.schema);
                     }
                 }
-            }
         }
     }
 

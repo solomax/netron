@@ -1,3 +1,4 @@
+var flatbuffers = flatbuffers || require('./flatbuffers');
 var $root = flatbuffers.get('armnn');
 
 $root.armnnSerializer = $root.armnnSerializer || {};

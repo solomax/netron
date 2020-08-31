@@ -19,7 +19,8 @@ view.View = class {
     constructor(host, id) {
         this._host = host;
         this._id = id ? ('-' + id) : '';
-        this._host.initialize(this).then(() => {
+        this._host.initialize(this);
+        try {
             this._model = null;
             this._selection = [];
             this._sidebar = new sidebar.Sidebar(this._host, id);
@@ -65,9 +66,9 @@ view.View = class {
                 }, false);
             }
             this._host.start();
-        }).catch((err) => {
+        } catch(err) {
             this.error(err, null, null);
-        });
+        };
     }
 
     show(page) {
@@ -1188,35 +1189,7 @@ view.ModelFactoryService = class {
     constructor(host) {
         this._host = host;
         this._extensions = [];
-        this.register('./onnx', [ '.onnx', '.pb', '.pbtxt', '.prototxt', '.model' ]);
         this.register('./mxnet', [ '.mar', '.model', '.json', '.params' ]);
-        this.register('./keras', [ '.h5', '.hd5', '.hdf5', '.keras', '.json', '.model', '.pb', '.pth' ]);
-        this.register('./coreml', [ '.mlmodel' ]);
-        this.register('./caffe', [ '.caffemodel', '.pbtxt', '.prototxt', '.pt' ]);
-        this.register('./caffe2', [ '.pb', '.pbtxt', '.prototxt' ]);
-        this.register('./pytorch', [ '.pt', '.pth', '.pt1', '.pkl', '.h5', '.t7', '.model', '.dms', '.tar', '.ckpt', '.chkpt', '.bin', '.pb', '.zip' ]);
-        this.register('./torch', [ '.t7' ]);
-        this.register('./tflite', [ '.tflite', '.lite', '.tfl', '.bin', '.pb', '.tmfile', '.h5', '.model', '.json' ]);
-        this.register('./tf', [ '.pb', '.meta', '.pbtxt', '.prototxt', '.json', '.index', '.ckpt', '.graphdef' ]);
-        this.register('./mediapipe', [ '.pbtxt' ]);
-        this.register('./uff', [ '.uff', '.pb', '.pbtxt', '.uff.txt', '.trt', '.engine' ]);
-        this.register('./sklearn', [ '.pkl', '.pickle', '.joblib', '.model', '.meta', '.pb', '.pt', '.h5' ]);
-        this.register('./cntk', [ '.model', '.cntk', '.cmf', '.dnn' ]);
-        this.register('./paddle', [ '.paddle', '.pdmodel', '__model__' ]);
-        this.register('./bigdl', [ '.model', '.bigdl' ]);
-        this.register('./darknet', [ '.cfg', '.model' ]);
-        this.register('./armnn', [ '.armnn', '.json' ]);
-        this.register('./mnn', ['.mnn']);
-        this.register('./ncnn', [ '.param', '.bin', '.cfg.ncnn', '.weights.ncnn' ]);
-        this.register('./tnn', [ '.tnnproto', '.tnnmodel' ]);
-        this.register('./tengine', ['.tmfile']);
-        this.register('./barracuda', [ '.nn' ]);
-        this.register('./dnn', [ '.dnn' ]);
-        this.register('./openvino', [ '.xml', '.bin' ]);
-        this.register('./flux', [ '.bson' ]);
-        this.register('./npz', [ '.npz', '.h5', '.hd5', '.hdf5' ]);
-        this.register('./dl4j', [ '.zip' ]);
-        this.register('./mlnet', [ '.zip' ]);
     }
 
     register(id, extensions) {

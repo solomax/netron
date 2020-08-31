@@ -1,6 +1,15 @@
 /* jshint esversion: 6 */
 /* eslint "no-global-assign": ["error", {"exceptions": [ "TextDecoder", "TextEncoder", "URLSearchParams" ] } ] */
 /* global view */
+import view from './view';
+
+//Models
+import mxnet from './mxnet';
+
+// styles
+import "./view-grapher.css";
+import "./view-sidebar.css";
+import "./style.css";
 
 var host = {};
 
@@ -41,63 +50,9 @@ host.BrowserHost = class {
 
     initialize(view) {
         this._view = view;
-        return new Promise((resolve /*, reject */) => {
-            const accept = () => {
-                if (this._telemetry) {
-                    const script = this.document.createElement('script');
-                    script.setAttribute('type', 'text/javascript');
-                    script.setAttribute('src', 'https://www.google-analytics.com/analytics.js');
-                    script.onload = () => {
-                        if (window.ga) {
-                            window.ga.l = 1 * new Date();
-                            window.ga('create', 'UA-54146-13', 'auto');
-                            window.ga('set', 'anonymizeIp', true);
-                        }
-                        resolve();
-                    };
-                    script.onerror = () => {
-                        resolve();
-                    };
-                    this.document.body.appendChild(script);
-                }
-                else {
-                    resolve();
-                }
-            };
-            const request = () => {
-                this._view.show('welcome consent');
-                const acceptButton = this.document.getElementById('consent-accept-button');
-                if (acceptButton) {
-                    acceptButton.addEventListener('click', () => {
-                        this._setCookie('consent', 'yes', 30);
-                        accept();
-                    });
-                }
-            };
-            if (this._getCookie('consent')) {
-                accept();
-            }
-            else {
-                this._request('https://ipinfo.io/json', { 'Content-Type': 'application/json' }, 'utf-8', 2000).then((text) => {
-                    try {
-                        const json = JSON.parse(text);
-                        const countries = ['AT', 'BE', 'BG', 'HR', 'CZ', 'CY', 'DK', 'EE', 'FI', 'FR', 'DE', 'EL', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'NO', 'PL', 'PT', 'SK', 'ES', 'SE', 'GB', 'UK', 'GR', 'EU', 'RO'];
-                        if (json && json.country && !countries.indexOf(json.country) !== -1) {
-                            this._setCookie('consent', Date.now(), 30);
-                            accept();
-                        }
-                        else {
-                            request();
-                        }
-                    }
-                    catch (err) {
-                        request();
-                    }
-                }).catch(() => {
-                    request();
-                });
-            }
-        });
+
+        window.__modules__ = window.__modules__ || {};
+        window.__modules__['./mxnet'] = mxnet;
     }
 
     start() {
@@ -223,14 +178,6 @@ host.BrowserHost = class {
                 }
             });
         }
-        const downloadButton = this.document.getElementById('download-button');
-        const downloadLink = this.document.getElementById('logo-github');
-        if (downloadButton && downloadLink) {
-            downloadButton.style.opacity = 1;
-            downloadButton.addEventListener('click', () => {
-                this.openURL(downloadLink.href);
-            });
-        }
         this.document.addEventListener('dragover', (e) => {
             e.preventDefault();
         });
@@ -267,6 +214,9 @@ host.BrowserHost = class {
     require(id) {
         const url = this._url(id + '.js');
         window.__modules__ = window.__modules__ || {};
+        if (window.__modules__[id]) {
+            return Promise.resolve(window.__modules__[id]);
+        }
         if (window.__modules__[url]) {
             return Promise.resolve(window.__exports__[url]);
         }
@@ -483,18 +433,6 @@ host.BrowserHost = class {
         }).catch((err) => {
             this._view.show('Model load request failed.', err, 'welcome');
         });
-    }
-
-    _setCookie(name, value, days) {
-        const date = new Date();
-        date.setTime(date.getTime() + ((typeof days !== "number" ? 365 : days) * 24 * 60 * 60 * 1000));
-        document.cookie = name + "=" + value + ";path=/;expires=" + date.toUTCString();
-    }
-
-    _getCookie(name) {
-        const cookie = '; ' + document.cookie;
-        const parts = cookie.split('; ' + name + '=');
-        return parts.length < 2 ? undefined : parts.pop().split(';').shift();
     }
 
     _about() {

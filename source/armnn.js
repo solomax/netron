@@ -1,4 +1,6 @@
 /* jshint esversion: 6 */
+var armnnMeta = armnnMeta || require('./armnn-metadata.json');
+var armnnSchema = armnnSchema || require('./armnn-schema');
 
 var armnn = armnn || {};
 var flatbuffers = flatbuffers || require('./flatbuffers');
@@ -30,7 +32,6 @@ armnn.ModelFactory = class {
     }
 
     open(context, host) {
-        return host.require('./armnn-schema').then((schema) => {
             armnn.schema = flatbuffers.get('armnn').armnnSerializer;
             const identifier = context.identifier;
             let model = null;
@@ -55,16 +56,13 @@ armnn.ModelFactory = class {
                 throw new armnn.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
             }
 
-            return armnn.Metadata.open(host).then((metadata) => {
                 try {
-                    return new armnn.Model(metadata, model);
+                    return Promise.resolve(new armnn.Model(new armnn.Metadata(armnnMeta), model));
                 }
                 catch (error) {
                     const message = error && error.message ? error.message : error.toString();
                     throw new new armnn.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
                 }
-            });
-        });
     }
 };
 
@@ -568,31 +566,28 @@ armnn.TensorShape = class {
 
 armnn.Metadata = class {
 
-    static open(host) {
+    static open() {
         if (armnn.Metadata._metadata) {
             return Promise.resolve(armnn.Metadata._metadata);
         }
-        return host.request(null, 'armnn-metadata.json', 'utf-8').then((data) => {
-            armnn.Metadata._metadata = new armnn.Metadata(data);
+        try {
+            armnn.Metadata._metadata = new armnn.Metadata(armnnMeta);
             return armnn.Metadata._metadata;
-        }).catch(() => {
+        } catch(e) {
             armnn.Metadata._metadata = new armnn.Metadata(null);
             return armnn.Metadata._metadata;
-        });
+        };
     }
 
     constructor(data) {
         this._map = {};
         if (data) {
-            const items = JSON.parse(data);
-            if (items) {
-                for (const item of items) {
+                for (const item of data) {
                     if (item.name && item.schema) {
                         item.schema.name = item.name;
                         this._map[item.name] = item.schema;
                     }
                 }
-            }
         }
     }
 

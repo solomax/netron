@@ -1,0 +1,119 @@
+html { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-text-rendering: optimizeLegibility; -moz-text-rendering: optimizeLegibility; -ms-text-rendering: optimizeLegibility; -o-text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-font-smoothing: antialiased; -ms-font-smoothing: antialiased; -o-font-smoothing: antialiased; }
+body { overflow: hidden; margin: 0; width: 100vw; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "PingFang SC"; font-size: 12px; text-rendering: geometricPrecision; }
+.center { position: absolute; margin: auto; top: 0; right: 0; bottom: 0; left: 0; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
+.select { user-select: text; -webkit-user-select: text; -moz-user-select: text; }
+.open-file-dialog { display: none; }
+.transparent { width: 100vw; height: 100vh; background-color: #000000; display: none; opacity: 0; }
+.graph { overflow: auto; width: 100%; height: 100%; }
+.canvas { display: block; position: absolute; text-rendering: geometricPrecision; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
+.toolbar { position: absolute; top: 10px; left: 10px; padding: 0; margin: 0; user-select: none; -webkit-user-select: none; -moz-user-select: none; }
+.toolbar-button { background: None; border-radius: 6px; border: 0; margin: 0; padding: 0; fill: None; stroke: #777; cursor: hand; width: 24px; height: 24px; }
+.toolbar button:focus { outline: 0; }
+.icon .border { stroke: #fff; }
+.icon .stroke { stroke: #808080; }
+.icon:hover .stroke { stroke: #000000; }
+.dropdown { display: none; position: absolute; min-width: 225px; z-index: 1; border-radius: 4px; background-color: #f6f6f6; border: 1px solid rgba(0,0,0,.15); padding-top: 2px; padding-bottom: 2px; margin-left: 2px; overflow: hidden; }
+.dropdown button { display: block; border: none; border-radius: 0; background-color: transparent; color: black; width: 100%; text-align: left; padding: 4px 12px 5px 12px; white-space: no-wrap; font-size: 12px; }
+.dropdown button:hover { color: #ffffff; background-color: #2e6bd2; }
+.dropdown .separator { margin-top: 2px; margin-bottom: 2px; border-top: 1px; border-bottom: 0; border-style: solid; border-color: #e5e5e5; }
+.about { background-color: #ffffff; }
+.about { overflow: hidden; }
+.about .logo { background-color: #ececec; color: #242424; width: 320px; height: 170px; padding: 40px; opacity: 1.0; border-radius: 5px; border: 0.5px solid #cccccc; box-shadow: 0 0 30px #ddd; }
+.about.desktop .logo { border: None; border-radius: 0px; }
+.about.desktop .graph { display: none; opacity: 0; }
+.about.desktop .transparent { display: none; opacity: 0; }
+.about.desktop .toolbar { display: none; opacity: 0; }
+.about .logo-text { top: -130px; width: 320px; }
+.about .logo-icon { left: 136px; top: -108px; width: 60px; height: 60px; }
+.about .logo-stroke { stroke: #242424; }
+.about .logo-fill { fill: #242424; }
+.about .logo-border { stroke: #242424; }
+.about .logo-glyph { fill: #242424; }
+.about .logo-message { top: 112px; padding-left: 40px; padding-right: 40px; }
+.about a { text-decoration: none; color: #242424; }
+.about a:visited { color: inherit; }
+.about a:hover { color: #242424; }
+.about .logo-github { top: 130px; width: 24px; height: 24px; }
+.about .open-file-button { display: none; }
+.about .download-button { display: none; }
+.about .consent-message { display: none; }
+.about .consent-accept-button { display: none; }
+.about .graph { display: block; opacity: 1; }
+.about .toolbar { display: block; opacity: 1; }
+.about .transparent { display: block; opacity: 0.5; }
+.welcome { background-color: #ececec; color: #242424; }
+.welcome .logo { width: 582px; height: 128px; }
+.welcome .logo-text { top: -57px; width: 582px; transition: 0.1s; }
+.welcome .logo-icon { left: 248px; top: -18px; width: 106px; height: 106px; transition: 0.1s; }
+.welcome .logo-spinner { left: 248px; top: -18px; width: 106px; height: 106px; display: none; }
+.welcome .logo-stroke { stroke: #999999; }
+.welcome .logo-fill { fill: #999999; }
+.welcome .logo-border { stroke: #888888; }
+.welcome .logo-glyph { fill: #999999; }
+.welcome .logo-message { display: none; }
+.welcome .logo-github { display: none; }
+.welcome button { font-size: 12px; font-weight: bold; line-height: 1.25; text-align: center; vertical-align: middle; min-width: 60px; height: 32px; border-radius: 16px; transition: 0.1s; user-select: none; -webkit-user-select: none; -moz-user-select: none; color: #888888; background-color: #ececec; border: 1px solid #aaaaaa; }
+.welcome button:hover { color: #ececec; background-color: #aaa; cursor: hand; transition: 0.2s; }
+.welcome button:focus { outline: 0; }
+.welcome .open-file-button { top: 180px; left: -150px; width: 125px; opacity: 1; }
+.welcome .download-button { top: 180px; left: 150px; width: 125px; opacity: 1; }
+.welcome .consent-accept-button { top: 220px; left: 0px; width: 125px; display: none; opacity: 0; }
+.welcome .consent-message { top: 120px; left: 0px; font-size: 13px; text-align: center; line-height: 20px; color: #888; display: none; opacity: 0; }
+.welcome .graph { display: none; opacity: 0; }
+.welcome.spinner .logo-spinner { display: block; -webkit-animation: orbit 0.5s infinite linear; animation: orbit 0.5s infinite linear; cursor: wait; }
+@-webkit-keyframes orbit { 0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); } 100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
+@keyframes orbit { 0% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); } }
+.welcome.spinner .logo-spinner-stroke { stroke: #ececec; }
+.welcome.spinner .open-file-button { opacity: 0; display: none; }
+.welcome.spinner .download-button { opacity: 0; display: none; }
+.welcome.consent .open-file-button { opacity: 0; display: none; }
+.welcome.consent .download-button { opacity: 0; display: none; }
+.welcome.consent .consent-accept-button { opacity: 1; display: block; }
+.welcome.consent .consent-message { opacity: 1; display: block; }
+.welcome.spinner .graph { display: block; opacity: 0; }
+.welcome .toolbar { display: none; }
+.default { background-color: #ffffff; }
+.default .logo { display: none; }
+.default .graph { display: block; opacity: 1; }
+.default .toolbar { display: block; }
+@media (prefers-color-scheme: dark) {
+.default { background-color: #404040; }
+.about { background-color: #404040; }
+.about .logo { background-color: #2d2d2d; color: #dfdfdf; border-color: #000000; box-shadow: 0 0 30px #333; }
+.about a { color: #dfdfdf; }
+.about a:hover { color: #ffffff; }
+.about .logo-stroke { stroke: #dfdfdf; }
+.about .logo-fill { fill: #dfdfdf; }
+.about .logo-border { stroke: #dfdfdf; }
+.about .logo-glyph { fill: #dfdfdf; }
+.welcome { background-color: #1e1e1e; color: #666666; }
+.welcome .logo-stroke { stroke: #666666; }
+.welcome .logo-fill { fill: #666666; }
+.welcome .logo-border { stroke: #000000; }
+.welcome .logo-glyph { fill: #555555; }
+.welcome .logo-spinner-stroke { stroke: #aaaaaa; }
+.welcome .logo button { color: #666666; background-color: #1e1e1e; border-color: #666666; }
+.welcome .logo button:hover { color: #1e1e1e; background-color: #666666; }
+.icon .border { stroke: #1d1d1d; }
+.icon .stroke { stroke: #aaaaaa; }
+.icon:hover .stroke { stroke: #dfdfdf; }
+.dropdown { background-color: #373737; border-color: #000000; }
+.dropdown button { color: #ffffff; }
+.dropdown button:hover { color: #ffffff; background-color: #1d59d1; }
+.dropdown .separator { border-color: #5a5a5a; }
+}
+@media all and (max-width: 640px) {
+.welcome .logo { width: 240px; }
+.welcome .logo-text { opacity: 0; }
+.welcome .logo-icon { left: 0; top: 0; width: 128px; height: 128px; }
+.welcome .logo-spinner { left: 0; top: 0; width: 128px; height: 128px; }
+.welcome .logo .open-file-button { top: 180px; left: 0; }
+.welcome .logo .download-button { top: 270px; left: 0; }
+.welcome .logo .consent-message { top: 140px; }
+.welcome .logo .consent-accept-button { top: 310px; }
+.about .logo { border-radius: 0; border-left: 0px; border-right: 0px; width: 100%; padding-left: 0; padding-right: 0; }
+.about.desktop .logo { width: 320px; padding: 40px; }
+}
+@media only screen and (max-device-width: 1024px) {
+.toolbar-button { width: 32px; height: 32px; }
+}

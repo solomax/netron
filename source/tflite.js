@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+var tfliteMeta = tfliteMeta || require('./tflite-metadata.json');
 
 var tflite = tflite || {};
 var flatbuffers = flatbuffers || require('./flatbuffers');
@@ -36,10 +37,10 @@ tflite.ModelFactory = class {
     open(context, host) {
         return host.require('./tflite-schema').then(() => {
             tflite.schema = flatbuffers.get('tflite').tflite;
-            return tflite.Metadata.open(host).then((metadata) => {
                 const identifier = context.identifier;
                 try {
                     const extension = identifier.split('.').pop().toLowerCase();
+                    const metadata = new tflite.Metadata(tfliteMeta);
                     switch (extension) {
                         default: {
                             const reader = new flatbuffers.Reader(context.buffer);
@@ -47,12 +48,12 @@ tflite.ModelFactory = class {
                                 throw new tflite.Error("File format is not tflite.Model.");
                             }
                             const model = tflite.schema.Model.create(reader);
-                            return new tflite.Model(metadata, model);
+                            return Promise.resolve(new tflite.Model(metadata, model));
                         }
                         case 'json': {
                             const reader = new flatbuffers.TextReader(context.text);
                             const model = tflite.schema.Model.createText(reader);
-                            return new tflite.Model(metadata, model);
+                            return Promise.resolve(new tflite.Model(metadata, model));
                         }
                     }
                 }
@@ -60,7 +61,6 @@ tflite.ModelFactory = class {
                     const message = error && error.message ? error.message : error.toString();
                     throw new tflite.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
                 }
-            });
         });
     }
 };
@@ -730,13 +730,10 @@ tflite.Metadata = class {
     constructor(data) {
         this._map = new Map();
         if (data) {
-            const items = JSON.parse(data);
-            if (items) {
-                for (const item of items) {
+                for (const item of data) {
                     item.schema.name = item.name;
                     this._map.set(item.name, item.schema);
                 }
-            }
         }
     }
 

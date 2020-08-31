@@ -1,4 +1,5 @@
 /* jshint esversion: 6 */
+var tfMeta = tfMeta || require('./tf-metadata.json');
 
 // Experimental
 
@@ -214,8 +215,7 @@ tf.ModelFactory = class {
                     break;
                 }
             }
-
-            return tf.Metadata.open(host).then((metadata) => {
+            const metadata = new tf.Metadata(tfMeta);
                 if (saved_model.meta_graphs.length === 1 &&
                     saved_model.meta_graphs[0].object_graph_def &&
                     saved_model.meta_graphs[0].object_graph_def.nodes &&
@@ -230,13 +230,12 @@ tf.ModelFactory = class {
                     });
                 }
                 return tf.ModelFactory._openModel(identifier, host, metadata, saved_model, format, producer, null);
-            });
         });
     }
 
     static _openModel(identifier, host, metadata, saved_model, format, producer, bundle) {
         try {
-            return new tf.Model(metadata, saved_model, format, producer, bundle);
+            return Promise.resolve(new tf.Model(metadata, saved_model, format, producer, bundle));
         }
         catch (error) {
             host.exception(error, false);
@@ -246,17 +245,15 @@ tf.ModelFactory = class {
     }
 
     static _openBundle(context, host) {
-        return tf.Metadata.open(host).then((metadata) => {
             const identifier = context.identifier;
 
             return tf.TensorBundle.open(context.buffer, identifier, context, host).then((bundle) => {
-                return new tf.Model(metadata, null, 'TensorFlow Tensor Bundle v' + bundle.format.toString(), null, bundle);
+                return new tf.Model(new tf.Metadata(tfMeta), null, 'TensorFlow Tensor Bundle v' + bundle.format.toString(), null, bundle);
             }).catch((error) => {
                 host.exception(error, false);
                 const message = error && error.message ? error.message : error.toString();
                 throw new tf.Error(message.replace(/\.$/, '') + " in '" + identifier + "'.");
             });
-        });
     }
 };
 
@@ -1726,17 +1723,12 @@ tf.Metadata = class {
     constructor(data) {
         this._map = {};
         if (data) {
-            if (data) {
-                const items = JSON.parse(data);
-                if (items) {
-                    for (const item of items) {
+                    for (const item of data) {
                         if (item.name && item.schema) {
                             item.schema.name = item.name;
                             this._map[item.name] = item.schema;
                         }
                     }
-                }
-            }
         }
     }
 

@@ -8,3 +8,6 @@ third_party/*
 test/data/*
 package-lock.json
 *.pyc
+.project
+.settings
+
