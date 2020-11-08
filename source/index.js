@@ -15,11 +15,11 @@ var host = {};
 
 host.BrowserHost = class {
 
-    constructor() {
+    constructor(doc) {
         window.eval = () => {
             throw new Error('window.eval() not supported.');
         };
-        this._document = window.document;
+        this._document = doc || window.document;
         this._meta = {};
         for (const element of Array.from(this._document.getElementsByTagName('meta'))) {
             if (element.content) {
@@ -131,10 +131,6 @@ host.BrowserHost = class {
         });
 
         this.document.getElementById('version').innerText = this.version;
-
-        if (!params.has('delay')) {
-            this._openInnerJson();
-        }
     }
 
     environment(name) {
@@ -618,4 +614,5 @@ host.BrowserHost.BrowserContext = class {
     }
 };
 
-window.__view__ = new view.View(new host.BrowserHost());
+window._NetronView = view;
+window._NetronHost = host;
